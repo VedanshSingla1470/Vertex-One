@@ -1,5 +1,4 @@
-
-package com.vertexone.prod.identity.config;
+package com.vertexone.prod.security.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
