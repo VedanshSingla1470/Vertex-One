@@ -3,6 +3,16 @@ package com.vertexone.prod.organization.service;
 
 import com.vertexone.prod.common.exception.DuplicateResourceException;
 import com.vertexone.prod.common.exception.ResourceNotFoundException;
+
+import com.vertexone.prod.identity.entity.User;
+import com.vertexone.prod.identity.repository.UserRepository;
+
+import com.vertexone.prod.membership.entity.Membership;
+import com.vertexone.prod.membership.enums.MembershipRole;
+import com.vertexone.prod.membership.enums.MembershipStatus;
+import com.vertexone.prod.membership.repository.MembershipRepository;
+
+import com.vertexone.prod.membership.service.OrganizationAuthorizationService;
 import com.vertexone.prod.organization.dto.request.OrganizationCreateRequest;
 import com.vertexone.prod.organization.dto.response.OrganizationResponse;
 import com.vertexone.prod.organization.entity.Organization;
@@ -12,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.access.AccessDeniedException;
 
 @Service
 @RequiredArgsConstructor
@@ -19,9 +30,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrganizationService {
 
     private final OrganizationRepository organizationRepository;
+    private final UserRepository userRepository;
+    private final MembershipRepository membershipRepository;
+    private final OrganizationAuthorizationService authorizationService;
 
     public OrganizationResponse createOrganization(
-            OrganizationCreateRequest request) {
+            OrganizationCreateRequest request,
+            String creatorEmail) {
 
         String slug = request.slug().trim().toLowerCase();
 
@@ -31,6 +46,12 @@ public class OrganizationService {
             );
         }
 
+        User creator = userRepository.findByEmail(
+                creatorEmail.trim().toLowerCase()
+        ).orElseThrow(() -> new ResourceNotFoundException(
+                "Creator account not found"
+        ));
+
         Organization organization = Organization.builder()
                 .name(request.name().trim())
                 .slug(slug)
@@ -39,17 +60,34 @@ public class OrganizationService {
 
         Organization saved = organizationRepository.save(organization);
 
+        // Automatically make the creator the organization owner.
+        Membership ownerMembership = Membership.builder()
+                .user(creator)
+                .organization(saved)
+                .role(MembershipRole.OWNER)
+                .status(MembershipStatus.ACTIVE)
+                .build();
+
+        membershipRepository.save(ownerMembership);
+
         return toResponse(saved);
     }
 
     @Transactional(readOnly = true)
-    public OrganizationResponse getOrganizationBySlug(String slug) {
+    public OrganizationResponse getOrganizationBySlug(
+            String slug,
+            String actorEmail) {
 
         Organization organization = organizationRepository
                 .findBySlug(slug.trim().toLowerCase())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Organization not found"
                 ));
+
+        authorizationService.requireActiveMembership(
+                actorEmail,
+                organization.getId()
+        );
 
         return toResponse(organization);
     }

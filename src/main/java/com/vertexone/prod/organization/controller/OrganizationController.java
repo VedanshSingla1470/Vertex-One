@@ -4,6 +4,7 @@ package com.vertexone.prod.organization.controller;
 import com.vertexone.prod.organization.dto.request.OrganizationCreateRequest;
 import com.vertexone.prod.organization.dto.response.OrganizationResponse;
 import com.vertexone.prod.organization.service.OrganizationService;
+import org.springframework.security.core.Authentication;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,22 +22,26 @@ public class OrganizationController {
 
     @PostMapping
     public ResponseEntity<OrganizationResponse> createOrganization(
-            @Valid @RequestBody OrganizationCreateRequest request) {
+            @Valid @RequestBody OrganizationCreateRequest request,
+            Authentication authentication) {
 
-        OrganizationResponse response =
-                organizationService.createOrganization(request);
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(response);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(organizationService.createOrganization(
+                        request,
+                        authentication.getName()
+                ));
     }
 
     @GetMapping("/slug/{slug}")
-    public ResponseEntity<OrganizationResponse> getOrganization(
-            @PathVariable String slug) {
+    public ResponseEntity<OrganizationResponse> getOrganizationBySlug(
+            @PathVariable String slug,
+            Authentication authentication) {
 
         return ResponseEntity.ok(
-                organizationService.getOrganizationBySlug(slug)
+                organizationService.getOrganizationBySlug(
+                        slug,
+                        authentication.getName()
+                )
         );
     }
 }

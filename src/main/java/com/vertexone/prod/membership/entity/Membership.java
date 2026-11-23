@@ -67,6 +67,13 @@ public class Membership {
     @Column(nullable = false)
     private Instant updatedAt;
 
+    @Column(name = "removed_at")
+    private Instant removedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "removed_by_user_id")
+    private User removedBy;
+
     @PrePersist
     protected void onCreate() {
         Instant now = Instant.now();
