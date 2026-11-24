@@ -2,7 +2,9 @@
 package com.vertexone.prod.vendor.entity;
 
 import com.vertexone.prod.organization.entity.Organization;
+import com.vertexone.prod.vendor.category.entity.VendorCategory;
 import com.vertexone.prod.vendor.enums.VendorStatus;
+import com.vertexone.prod.vendor.category.entity.VendorCategory;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -49,6 +51,10 @@ public class Vendor {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "organization_id", nullable = false)
     private Organization organization;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private VendorCategory category;
 
     @Column(nullable = false, length = 150)
     private String name;

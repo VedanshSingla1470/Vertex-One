@@ -63,4 +63,10 @@ public interface VendorRepository extends JpaRepository<Vendor, UUID> {
             String taxId,
             UUID id
     );
+
+    boolean existsByOrganizationIdAndCategoryId(
+            UUID organizationId,
+            UUID categoryId
+    );
+
 }

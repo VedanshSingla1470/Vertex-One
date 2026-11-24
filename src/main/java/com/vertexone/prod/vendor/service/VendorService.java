@@ -225,6 +225,9 @@ public class VendorService {
                 vendor.getAddress(),
                 vendor.getTaxId(),
                 vendor.getStatus(),
+                vendor.getCategory() != null
+                        ? vendor.getCategory().getId()
+                        : null,
                 vendor.getCreatedAt(),
                 vendor.getUpdatedAt()
         );

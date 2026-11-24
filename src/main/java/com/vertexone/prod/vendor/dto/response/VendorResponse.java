@@ -16,6 +16,7 @@ public record VendorResponse(
         String address,
         String taxId,
         VendorStatus status,
+        UUID categoryId,
         Instant createdAt,
         Instant updatedAt
 ) {}
